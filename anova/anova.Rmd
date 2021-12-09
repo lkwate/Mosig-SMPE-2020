@@ -1,0 +1,61 @@
+---
+title: "anova"
+author: "Kwate Dassi Loic"
+date: "12/9/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## TP: Anova analysis on wheat
+```{r}
+library(ggplot2)
+ble = read.table("ble.txt", header=TRUE, sep=";", dec=".")
+```
+
+## 1-Factor ANOVA
+ggplot(ble, aes(x=variete, y=rdt)) + 
+```{r}
+ggplot(ble, aes(x=variete, y=rdt)) + 
+  geom_boxplot() + 
+  ggtitle("Whisker boxes") + 
+  xlab("Wheat variety") + 
+  ylab("Yield")
+```
+
+```{r}
+ggplot(ble, aes(x=phyto, y=rdt)) + 
+  geom_boxplot() + 
+  ggtitle("Boxplot") + 
+  xlab("Phytosanitary treatment") + 
+  ylab("Yield")
+```
+
+## ANOVA tes on wheat variety
+```{r}
+anova_variete = lm(rdt~variete, data=ble)
+summary(anova_variete)
+```
+
+```{r}
+anova(anova_variete)
+```
+
+## ANOVA test on pesticide
+
+```{r}
+anova_phyto = lm(rdt~phyto, data=ble)
+summary(anova_phyto)
+anova(anova_phyto)
+```
+
+## 2-Factor ANOVA
+
+```{r}
+anova_variete_phyto = lm(rdt~variete * phyto, data=ble)
+summary(anova_variete_phyto)
+anova(anova_variete_phyto)
+```
+

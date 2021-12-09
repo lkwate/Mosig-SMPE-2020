@@ -1,0 +1,123 @@
+---
+title: "Labwork-Batman"
+author: "Kwate Dassi Loic"
+date: "12/9/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Labwork: Is Batman somewhere?
+
+## Data Loading
+```{r}
+library(ggplot2)
+data = read.table(file="bats.txt", sep=";", skip=3, header=T)
+names(data)
+```
+## Study of the relationship between brain weight and body mass
+
+* Scatter plot of the function $BRW = f(BOW)$
+```{r}
+phyto = data[(data$Diet == 1),]
+ggplot(phyto, aes(x=BOW, y=BRW)) + 
+  geom_point()
+```
+
+* Approximate the function $BRW = f(BOW)$ with a simple linear regression. That is, the approximated function will be the following: 
+$$BRW = \beta_0 + \beta_1 \times BOW$$
+```{r}
+reg1 = lm(BRW ~ BOW, data=phyto)
+summary(reg1)
+```
+
+## Interpretation of the first linear regression
+
+* Value of the intercept term: $623.449$
+* The $p-values$ of the statistic test are the following: $2.2\times 10^{-16}$ and $3.14 \times 10 ^ {-8}$
+* Hypothesis $H_0$ of the test: $\beta_0 = 0$ and $\beta_1 = 0$
+* Both the $p-values$ are below the common threshold which is $5\%$ therefore with can reject the null hypothesis
+* Regarding the value of the adjusted R-squared, $0.9482$, which is above the $0.8$, we can said that the simple linear regression is expressive and enough to approximate the true mapping between the body mass and brain mass
+
+### Analysis of variance of the simple linear regression
+```{r}
+anova(reg1)
+```
+The analysis of variance provide supplementary information on variance, namely, the total sum of squares and the mean of the sum of squares.
+
+```{r}
+plot(reg1$fitted.values, reg1$residuals, xlab="Predicted", ylab="Residuals")
+```
+
+Based on the trend obtained from this previous plot, we can say that the residuals tend to increase for larger fitted values.
+
+### Regression without larger fitted values
+```{r}
+plot(reg1, 4)
+which(phyto$BRW > 8000)
+phytobis = phyto[which(phyto$BRW < 8000),]
+
+reg2 = lm(BRW ~ BOW, data=phytobis)
+summary(reg2)
+```
+
+```{r}
+par(mfcol=c(2, 2))
+plot(reg1)
+```
+
+# Study of the contribution to the total weight of each part of the brain
+## Correlation analysis between explicative variables
+```{r}
+library(corrplot)
+```
+
+
+```{r}
+phytoNum = phyto[, c(4:8)]
+mat.cor = cor(phytoNum)
+corrplot(mat.cor, type="lower")
+```
+```{r}
+cor.test(phyto$BRW, phyto$HIP)
+cor.test(phyto$BRW, phyto$MOB)
+cor.test(phyto$BRW, phyto$AUD)
+```
+**Conclusion**: It is worth considering the variables $HIP$, $MOB$, and $AUD$ to explain the weight of the body since the pairwise correlation between those variables and the target one is none negligible.
+
+```{r}
+regm = lm(BRW ~ AUD + MOB + HIP, data=phytobis)
+summary(regm)
+anova(regm)
+```
+
+## Interpretation of the muti-variable linear regression
+* Mathematical model: $BRW = \beta_0 + \beta_1 \times AUD + \beta_2 \times MOB + \beta_3 \times HIP$.
+* The multi-variate linear regression implemented can be considered as valid because the explained variance is close to the total variance. This is explained by the fact that the value of the adjusted correlation, $0.9712$ is close to $1$. This model provides a better explanation of the body's brain that the first simple linear regression.
+* The values of the coefficients are the following : -312.69, 47.98, -2.44, and 15.98, ascribed to the variable **Intercept**, **AUD**, **MOB**, and **HIP** respectively.
+* The model is not confident enough regarding the worthiness of the variable **MOB**. The $p-value$ is high enough (far above $5\%$) to reject the null hypothesis.
+
+```{r}
+reg0 = lm(BRW ~ 1, data = phyto)
+step(reg0, scope=BRW~AUD + MOB + HIP, dierction="forward")
+```
+
+* The preceding test aim to find the subset of variable that provide a better explainability of the target variable by iteratively add a new variable in the model till there is no significant improvement according to metric used to test the performance of the selected model, that is, the AIC score.
+* The conclusion that could be drawn out from this test is the all the variables $AUD$, $MOB$, $HIP$ are noteworthy for the prediction of $BRW$
+# Link between volume of the auditory part and diet
+Plot of the function $AUD = f(DIET)$
+```{r}
+data$Diet_F = as.factor(data$Diet)
+with(data, plot(AUD~Diet))
+with(data, plot(AUD~Diet_F))
+```
+The graph with the variable **Diet** as a factor explains the data better than the graph with the original type. Besides the plot of the mapping, it's also provides the confidence interval of the approximation of the the mean of each Diet category.
+
+```{r}
+lm = lm(AUD~Diet_F, data=data)
+anova(lm)
+```
+
+Based on the results of the anova, especially on the $p-value$, we can conclude that the the simple linear regression is not suited to model the mapping between the volume of the auditory and the diet. This is not surprising because of previous plot doesn't favor the drawing of any straight line to fit the cloud of the point.

@@ -1,0 +1,85 @@
+---
+title: "lm-tutorial"
+author: "Kwate Dassi Loic"
+date: "12/2/2021"
+output: pdf_document
+---
+
+```{r}
+library(ggplot2)
+library(tidyverse)
+```
+
+# 1. Data Retrieval
+```{r}
+data = read.table(file="data.csv", sep=";", skip=3, header=TRUE)
+data = data[data$X10 != 0,]
+```
+
+# 2. Simple Regression
+```{r}
+circ = data$X70
+height = data$X10
+ggplot(data, aes(x=circ, y=height)) + geom_point() + xlab("circ") + ylab("height")
+```
+
+```{r}
+simple_reg = lm(height~circ, data=data)
+```
+
+```{r}
+print(names(simple_reg))
+print(anova(simple_reg))
+summary(simple_reg)
+```
+```{r}
+ggplot(data, aes(x=circ, y=height)) + geom_point() + stat_smooth(method="lm", se=FALSE) + xlab("circ") + ylab("height")
+```
+
+```{r}
+acf(residuals(simple_reg))
+```
+
+```{r}
+plot(simple_reg, 2)
+```
+```{r}
+plot(simple_reg$residuals)
+plot(simple_reg, 3)
+plot(simple_reg, 1)
+```
+```{r}
+plot(simple_reg, 4)
+```
+
+```{r}
+predict(simple_reg, data.frame(circ=10), interval="prediction")
+```
+
+# 3. Multivariate Regression
+```{r}
+data$circ_sqrt = sqrt(data$X70)
+```
+
+```{r}
+multi_reg = lm(height~circ+circ_sqrt, data=data)
+summary(multi_reg)
+```
+```{r}
+multi_reg = lm(height~circ_sqrt, data=data)
+summary(multi_reg)
+```
+
+
+```{r}
+circ_pred = seq(0.175, len=1000)
+height_pred = multi_reg$coefficients[1] + multi_reg$coefficients[2] * sqrt(circ_pred)
+fct_reg = data.frame(circ_pred=circ_pred, height_pred=height_pred)
+
+ggplot() + geom_point(data=data, aes(x=circ, y=height)) + 
+  geom_line(data=fct_reg, aes(x=circ_pred, y=height_pred), col="blue") + 
+  stat_smooth(method="lm", se=FALSE) + 
+  xlab("circ") + 
+  ylab("height")
+```
+
