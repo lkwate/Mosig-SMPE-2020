@@ -1,0 +1,65 @@
+---
+title: "PointingXP"
+author: "Céline Coutrix"
+date: "11/17/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Loading libraries
+
+```{r loading ggplot2}
+library(ggplot2)
+library(tidyverse)
+```
+
+## Loading data
+
+```{r loading csv data into a dataframe}
+meanMTdf <- read.csv("data-1.csv", header=T)
+```
+
+```{r loading csv data into a dataframe}
+data = meanMTdf %>% group_by(ID) %>% summarise(MT = mean(MT)) %>% ungroup()
+```
+
+## Plotting the data together with the linear regression
+
+```{r Plotting the raw data together with the linear regression}
+ggplot(data, aes(ID, MT)) +
+  geom_point() +
+  geom_smooth(method='lm')
+```
+```{r linear modeling}
+data_1 = read.csv("Ground_Truth_MeanMT.csv")
+data_1 = data_1 %>% group_by(ID) %>% summarize(MT = mean(MT)) %>% ungroup()
+ggplot(data_1, aes(ID, MT)) +
+  geom_point() +
+  geom_smooth(method='lm')
+```
+```{r linear modeling}
+data_1 = read.csv("data-3.csv")
+data_1 = data_1 %>% group_by(ID) %>% summarize(MT = mean(MT)) %>% ungroup()
+ggplot(data_1, aes(ID, MT)) +
+  geom_point() +
+  geom_smooth(method='lm')
+```
+```{r linear modeling}
+data_1 = read.csv("data-final.csv")
+data_1 = data_1 %>% group_by(name, ID) %>% summarize(MT = mean(MT), .groups='drop') %>% ungroup()
+ggplot(data_1, aes(ID, MT, color=name)) +
+  geom_point() +
+  geom_smooth(method='lm')
+```
+## Linear modelling
+
+```{r linear modeling}
+model <- lm(MT~ID, data = data_1)
+summary(model)
+```
+
+Weirdly, in contrast to what Fitts' law says, ID does not seem to have an impact on the movement time. 
+Also, the R2=0.218 reported by the [experimental software](http://ergo.human.cornell.edu/FittsLaw/FittsLaw.html) and the R2=0.008146 I find here, are different. 
